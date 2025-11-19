@@ -14,7 +14,7 @@ if project_root not in sys.path:
 from src.utils.data_loader import load_processed_data
 
 # Configuration
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'processed', 'analysis_results')
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'processed', 'analysis_results', 'focused_analysis')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def assign_country_simulation(df):
@@ -125,40 +125,24 @@ def analyze_research_area_growth(df):
     pivot_data = pivot_data[column_order]
     
     # Create the stacked area chart
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 12))
+    fig, ax = plt.subplots(figsize=(16, 10))
     
-    # ============ SUBPLOT 1: Stacked Area Chart ============
     colors = sns.color_palette("husl", len(top_categories))
     
-    ax1.stackplot(pivot_data.index, 
-                  *[pivot_data[col] for col in pivot_data.columns],
-                  labels=pivot_data.columns,
-                  colors=colors,
-                  alpha=0.8)
+    ax.stackplot(pivot_data.index, 
+                 *[pivot_data[col] for col in pivot_data.columns],
+                 labels=pivot_data.columns,
+                 colors=colors,
+                 alpha=0.8)
     
-    ax1.set_title('Research Area Growth Over Time (Stacked Area Chart)', 
-                  fontsize=18, fontweight='bold', pad=20)
-    ax1.set_xlabel('Submission Year', fontsize=14, fontweight='bold')
-    ax1.set_ylabel('Number of Publications', fontsize=14, fontweight='bold')
-    ax1.legend(title='Research Area', title_fontsize=12, fontsize=10, 
+    ax.set_title('Research Area Growth Over Time', 
+                 fontsize=18, fontweight='bold', pad=20)
+    ax.set_xlabel('Submission Year', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Number of Publications', fontsize=14, fontweight='bold')
+    ax.legend(title='Research Area', title_fontsize=12, fontsize=10, 
               loc='upper left', framealpha=0.95, ncol=2)
-    ax1.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
-    ax1.set_facecolor('#f8f9fa')
-    
-    # ============ SUBPLOT 2: Individual Line Chart (to see trends clearly) ============
-    for i, category in enumerate(pivot_data.columns):
-        ax2.plot(pivot_data.index, pivot_data[category], 
-                marker='o', linewidth=2.5, markersize=5,
-                label=category, color=colors[i], alpha=0.9)
-    
-    ax2.set_title('Research Area Growth Over Time (Individual Trends)', 
-                  fontsize=18, fontweight='bold', pad=20)
-    ax2.set_xlabel('Submission Year', fontsize=14, fontweight='bold')
-    ax2.set_ylabel('Number of Publications', fontsize=14, fontweight='bold')
-    ax2.legend(title='Research Area', title_fontsize=12, fontsize=10, 
-              loc='upper left', framealpha=0.95, ncol=2)
-    ax2.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
-    ax2.set_facecolor('#f8f9fa')
+    ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
+    ax.set_facecolor('#f8f9fa')
     
     plt.tight_layout()
     plt.savefig(os.path.join(OUTPUT_DIR, 'research_growth_stacked.png'), 
@@ -167,8 +151,7 @@ def analyze_research_area_growth(df):
     
     print(f"\n✓ Visualization saved: research_growth_stacked.png")
     print(f"  - Shows growth trends and potential bursts in research areas")
-    print(f"  - Top area chart shows cumulative growth (stacked)")
-    print(f"  - Bottom line chart shows individual trends for comparison")
+    print(f"  - Stacked area chart shows cumulative growth over time")
     
     return pivot_data
 

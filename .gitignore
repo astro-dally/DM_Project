@@ -39,6 +39,24 @@ data/processed/*.csv
 data/processed/analysis_results/*.png
 data/processed/analysis_results/*.csv
 !data/processed/arxiv_processed_mock.csv
+data/processed/analysis_results/data_quality/
+data/processed/analysis_results/statistical_tests/
+data/processed/analysis_results/predictive_models/
+data/processed/analysis_results/exploratory_analysis/
+data/processed/analysis_results/focused_analysis/
+data/processed/analysis_results/README.md
+data/processed/analysis_results/data_quality_summary.txt
+data/processed/analysis_results/interdisciplinarity_anova_test.png
+data/processed/analysis_results/correlation_analysis_tests.png
+data/processed/analysis_results/citation_prediction_performance.png
+data/processed/analysis_results/citation_prediction_feature_importance.png
+data/processed/analysis_results/citation_prediction_results.csv
+data/processed/analysis_results/research_growth_forecast.png
+data/processed/analysis_results/research_growth_forecast.csv
+data/processed/analysis_results/emerging_keywords_classification.png
+data/processed/analysis_results/emerging_keywords_analysis.csv
+data/processed/analysis_results/category_cooccurrence_network.png
+
 
 # IDE
 .vscode/
@@ -58,3 +76,7 @@ Thumbs.db
 instance/
 .webassets-cache
 
+# Matplotlib
+.matplotlib/
+
+/docs/

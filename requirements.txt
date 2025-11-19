@@ -7,4 +7,6 @@ plotly
 wordcloud
 flask
 gunicorn
+statsmodels
+scipy
 

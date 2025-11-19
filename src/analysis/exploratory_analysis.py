@@ -14,7 +14,7 @@ if project_root not in sys.path:
 from src.utils.data_loader import load_processed_data
 
 # Configuration
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'processed', 'analysis_results')
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'processed', 'analysis_results', 'exploratory_analysis')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def analyze_research_growth(df):
@@ -220,6 +220,94 @@ def analyze_interdisciplinarity(df):
     print("\nNOTE: Citation analysis requires 'citation_count' data.")
     print("This mock analysis only shows the number of disciplines per paper.")
 
+def analyze_category_cooccurrence(df):
+    """
+    Creates a network visualization showing which research categories co-occur together.
+    This reveals interdisciplinary connections between fields.
+    """
+    print("\n--- 4.5. Category Co-occurrence Network Analysis ---")
+    
+    # Ensure main_categories is a list
+    df['main_categories'] = df['main_categories'].apply(
+        lambda x: ast.literal_eval(x) if isinstance(x, str) else x
+    )
+    
+    # Build co-occurrence matrix
+    from itertools import combinations
+    cooccurrence = Counter()
+    
+    for categories in df['main_categories']:
+        if isinstance(categories, list) and len(categories) > 1:
+            # Count all pairs of categories that appear together
+            for cat1, cat2 in combinations(sorted(categories), 2):
+                cooccurrence[(cat1, cat2)] += 1
+    
+    # Get top categories and their co-occurrences
+    top_categories = df['main_categories'].explode().value_counts().head(15).index.tolist()
+    
+    # Filter co-occurrences to only include top categories
+    filtered_cooccurrence = {
+        (c1, c2): count for (c1, c2), count in cooccurrence.items()
+        if c1 in top_categories and c2 in top_categories and count >= 5
+    }
+    
+    if not filtered_cooccurrence:
+        print("Insufficient co-occurrence data for network visualization.")
+        return
+    
+    # Create a simple network visualization using matplotlib
+    import numpy as np
+    
+    # Create adjacency matrix
+    categories_list = sorted(list(set([c for pair in filtered_cooccurrence.keys() for c in pair])))
+    n_categories = len(categories_list)
+    adj_matrix = np.zeros((n_categories, n_categories))
+    
+    category_to_idx = {cat: idx for idx, cat in enumerate(categories_list)}
+    
+    for (c1, c2), count in filtered_cooccurrence.items():
+        idx1, idx2 = category_to_idx[c1], category_to_idx[c2]
+        adj_matrix[idx1, idx2] = count
+        adj_matrix[idx2, idx1] = count  # Symmetric
+    
+    # Create heatmap visualization
+    plt.figure(figsize=(14, 12))
+    
+    # Create mask for upper triangle to avoid duplication
+    mask = np.triu(np.ones_like(adj_matrix, dtype=bool), k=1)
+    
+    sns.heatmap(adj_matrix, 
+                xticklabels=categories_list,
+                yticklabels=categories_list,
+                annot=True, 
+                fmt='g',
+                cmap='YlOrRd',
+                mask=mask,
+                square=True,
+                linewidths=0.5,
+                cbar_kws={'label': 'Co-occurrence Count'})
+    
+    plt.title('Category Co-occurrence Network\n(Shows which research fields appear together in papers)', 
+              fontsize=16, fontweight='bold', pad=20)
+    plt.xlabel('Research Category', fontsize=12, fontweight='bold')
+    plt.ylabel('Research Category', fontsize=12, fontweight='bold')
+    plt.xticks(rotation=45, ha='right', fontsize=10)
+    plt.yticks(rotation=0, fontsize=10)
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUT_DIR, 'category_cooccurrence_network.png'), dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    print(f"Category co-occurrence network saved to {OUTPUT_DIR}/category_cooccurrence_network.png")
+    
+    # Print top co-occurring pairs
+    print("\nTop 10 Co-occurring Category Pairs:")
+    top_pairs = sorted(filtered_cooccurrence.items(), key=lambda x: x[1], reverse=True)[:10]
+    for i, ((c1, c2), count) in enumerate(top_pairs, 1):
+        print(f"  {i}. {c1} ↔ {c2}: {count} papers")
+    
+    return filtered_cooccurrence
+
 def analyze_emerging_keywords(df):
     """
     Identifies emerging keywords based on frequency and recent growth.
@@ -283,6 +371,7 @@ def main():
         analyze_research_growth(df)
         analyze_collaboration(df)
         analyze_interdisciplinarity(df)
+        analyze_category_cooccurrence(df)
         analyze_emerging_keywords(df)
         
         print("\nExploratory analysis complete. Results saved to data/processed/analysis_results.")
